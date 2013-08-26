@@ -118,44 +118,85 @@ int mapEmpty(struct map_t *pThis)
 /*Rotate*/
 struct node * R_Rotate(struct node *cur)
 {
-  if (cur->parent->parent == NULL)
-    ;
+  if (cur->parent->parent == NULL) ;
   else if (cur->parent->parent->left == cur->parent)
     cur->parent->parent->left = cur;
   else
     cur->parent->parent->right = cur;
   cur->parent->left = cur->right;
   if (cur->right)
-  {
-    cur->right->parent = cur->right;
-  }
+    cur->right->parent = cur->parent;
   cur->right = cur->parent;
   cur->parent = cur->parent->parent;
   cur->right->parent = cur;
-  cur->right->level -= (cur->right->level > 2) ? 2 : (cur->right->level == 2) ? 1 : 0;
-  cur->level = (cur->left == NULL) ? cur->right->level+1 : (cur->right->level > cur->left->level) ? cur->right->level+1 : cur->left->level+1;
+  /*cur->right->level -= (cur->right->level > 2) ? 2 : (cur->right->level == 2) ? 1 : 0;*/
+  /*
+  cur->level = (cur->left == NULL) ? cur->right->level+1 :
+  (cur->right->level > cur->left->level) ? cur->right->level+1 : cur->left->level+1;*/
+  if (cur->right->left == NULL && cur->right->right == NULL)
+    cur->right->level = 1;
+  else if (cur->right->right == NULL)
+  {
+    cur->right->level = cur->right->left->level+1;
+  }
+  else if (cur->right->left == NULL)
+  {
+    cur->right->level = cur->right->right->level+1;
+  }
+  else
+  {
+    cur->right->level = (cur->right->right->level > cur->right->left->level) ? cur->right->right->level+1: cur->right->left->level+1;
+  }
+  if (cur->left == NULL)
+  {
+    cur->level = cur->right->level+1;
+  }
+  else
+  {
+    cur->level = (cur->right->level > cur->left->level) ? cur->right->level+1: cur->left->level+1;
+  }
   cur->nChild += (cur->right->right == NULL)? 1 : (cur->right->right->nChild + 1);
   cur->right->nChild -= (cur->left == NULL) ? 1 : (cur->left->nChild + 1);
   return cur;
 }
 struct node * L_Rotate(struct node *cur)
 {
-  if (cur->parent->parent == NULL)
-    ;
+  if (cur->parent->parent == NULL) ;
   else if (cur->parent->parent->right == cur->parent)
     cur->parent->parent->right = cur;
   else
     cur->parent->parent->left = cur;
   cur->parent->right = cur->left;
   if (cur->left)
-  {
     cur->left->parent = cur->parent;
-  }
   cur->left = cur->parent;
   cur->parent = cur->parent->parent;
   cur->left->parent = cur;
-  cur->left->level -= (cur->left->level > 2 ) ? 2 : (cur->left->level == 2) ? 1 : 0;
-  cur->level = (cur->right == NULL) ? cur->left->level+1 : (cur->right->level > cur->left->level) ? cur->right->level+1 : cur->left->level+1;
+  /*cur->left->level -= (cur->left->level > 2 ) ? 2 : (cur->left->level == 2) ? 1 : 0;*/
+  /*cur->level = (cur->right == NULL) ? cur->left->level+1 :
+    ((cur->right->level > cur->left->level) ? (cur->right->level+1) : (cur->left->level+1));*/
+  if (cur->left->left == NULL && cur->left->right == NULL)
+    cur->left->level = 1;
+  else if (cur->left->right == NULL)
+  {
+    cur->left->level = cur->left->left->level+1;
+  }
+  else if (cur->left->left == NULL)
+  {
+    cur->left->level = cur->left->right->level+1;
+  }
+  else
+  {
+    cur->left->level = (cur->left->right->level > cur->left->left->level) ? cur->left->right->level+1: cur->left->left->level+1;
+  }
+  if (cur->right == NULL)
+  {
+    cur->level = cur->left->level+1;
+  }
+  else
+  {
+    cur->level = (cur->right->level > cur->left->level) ? cur->right->level+1: cur->left->level+1;
+  }
   cur->nChild += (cur->left->left == NULL) ? 1 : (cur->left->left->nChild + 1);
   cur->left->nChild -= (cur->right == NULL) ? 1 : (cur->right->nChild + 1);
   return cur;
@@ -218,9 +259,7 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
 {
 	if(pThis->size == pThis->cap)
     if (pThis->dynamic)
-    {
       pThis->cap *= 2;
-    }
     else
 		  return __DS__MAP__FULL__;
   if (pThis->size == 0)
@@ -232,9 +271,9 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
 	struct node* cur = pThis->head;
   while (1)
   {
-    if (pThis->cmp(cur->obj, pKey) == 0)
+    if (pThis->cmp(cur->obj, pObj) == 0)
       return __DS__MAP__OBJ_EXIST__;
-    else if (pThis->cmp(cur->obj, pKey) < 0)
+    else if (pThis->cmp(cur->obj, pObj) < 0)
     {
       if (cur->right == NULL)
       {
@@ -255,9 +294,7 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
         break;
       }
       else
-      {
         cur = cur->right;
-      }
     }
     else
     {
@@ -285,11 +322,11 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
       }
     }
   }
-  /*update level and nChild*/
+  /*update level*/
   while (1)
   {
     if (cur->left == NULL && cur->right == NULL)
-      ;
+      cur->level = 1;
     else if (cur->right == NULL)
     {
       cur->level = cur->left->level+1;
@@ -311,9 +348,7 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
         if (cur->right->level == 2)
         {
           if (cur == pThis->head)
-          {
             pThis->head = buggy(cur, 1);
-          }
           else
             buggy(cur, 1);
           break;
@@ -325,9 +360,7 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
         if (cur->left->level == 2)
         {
           if (cur == pThis->head)
-          {
             pThis->head = buggy(cur, 2);
-          }
           else
             buggy(cur, 2);
           break;
@@ -359,7 +392,6 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
     }
     if (cur == pThis->head)
       break;
-    cur->parent->nChild++;
     cur = cur->parent;
   }
 	pThis->size++;
@@ -368,6 +400,8 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj)
 
 int mapDelete(struct map_t *pThis, void *pKey)
 {
+  if (pThis->size == 0)
+    return __DS__MAP__OBJ_NOT_EXIST__;
 	struct node* cur = pThis->head;
   if (pThis->size <= 3)
   {
@@ -376,10 +410,9 @@ int mapDelete(struct map_t *pThis, void *pKey)
     if (pThis->size == 1)
     {
       free(cur->obj);
-      free(cur->key);
       free(cur);
       pThis->size--;
-      return __DS__MAP__OBJ_EXIST__;
+      return __DS__MAP__NORMAL__;
     }
     if (pThis->cmp(cur->obj, pKey) == 0)
     {
@@ -392,7 +425,6 @@ int mapDelete(struct map_t *pThis, void *pKey)
         if (cur->left)
           cur->left->parent = pThis->head;
         free(cur->obj);
-        free(cur->key);
         free(cur);
         pThis->size--;
         return __DS__MAP__NORMAL__;
@@ -406,7 +438,6 @@ int mapDelete(struct map_t *pThis, void *pKey)
         if (cur->right)
           cur->right->parent = pThis->head;
         free(cur->obj);
-        free(cur->key);
         free(cur);
         pThis->size--;
         return __DS__MAP__NORMAL__;
@@ -421,7 +452,6 @@ int mapDelete(struct map_t *pThis, void *pKey)
       else
       {
         free(cur->left->obj);
-        free(cur->left->key);
         free(cur->left);
         pThis->head->left = NULL;
         pThis->head->pre = NULL;
@@ -438,7 +468,6 @@ int mapDelete(struct map_t *pThis, void *pKey)
       else
       {
         free(cur->right->obj);
-        free(cur->right->key);
         free(cur->right);
         pThis->head->right = NULL;
         pThis->head->next = NULL;
@@ -474,14 +503,18 @@ int mapDelete(struct map_t *pThis, void *pKey)
   {
     re = cur->next;
     if (cur == pThis->head)
+    {
       pThis->head = re;
+      pThis->head->parent = NULL;
+    }
     temp = re->parent;
+    if (temp == cur)
+      temp = re;
     /*fix level nChild*/
     re->parent->nChild--;
-    if (re->level > re->parent->right->level)
-      re->parent->level--;
     /*fix linked list*/
-    cur->pre->next = re;
+    if (cur->pre)
+      cur->pre->next = re;
     re->pre = cur->pre;
     /*fix tree structure*/
     if (re->parent == cur)
@@ -490,7 +523,11 @@ int mapDelete(struct map_t *pThis, void *pKey)
       if (re->left)
         re->left->parent = re;
       re->parent = cur->parent;
-      cur->parent->right = re;
+      if (cur->parent)
+        if (cur->parent->right == cur)
+          cur->parent->right = re;
+        else
+          cur->parent->left = re;
     }
     else
     {
@@ -513,21 +550,24 @@ int mapDelete(struct map_t *pThis, void *pKey)
         re->right->parent = re;
     }
     free(cur->obj);
-    free(cur->key);
     free(cur);
   }
   else if (cur->pre != NULL && cur->pre->level < cur->level)
   {
     re = cur->pre;
     if (cur == pThis->head)
+    {
       pThis->head = re;
+      pThis->head->parent;
+    }
     temp = re->parent;
+    if (temp == cur)
+      temp = re;
     /*fix level nChild*/
     re->parent->nChild--;
-    if (re->level > re->parent->left->level)
-      re->parent->level--;
     /*fix linked list*/
-    cur->next->pre = re;
+    if (cur->next)
+      cur->next->pre = re;
     re->next = cur->next;
     /*fix tree structure*/
     if (re->parent == cur)
@@ -536,7 +576,11 @@ int mapDelete(struct map_t *pThis, void *pKey)
       if (re->right)
         re->right->parent = re;
       re->parent = cur->parent;
-      cur->parent->left = re;
+      if (cur->parent)
+        if (cur->parent->left == cur)
+          cur->parent->left = re;
+        else
+          cur->parent->right = re;
     }
     else
     {
@@ -559,34 +603,36 @@ int mapDelete(struct map_t *pThis, void *pKey)
         re->right->parent = re;
     }
     free(cur->obj);
-    free(cur->key);
     free(cur);
   }
   else
   {
     temp = cur->parent;
     if (cur->pre)
-    {
       cur->pre->next = cur->next;
-    }
     if (cur->next)
-    {
       cur->next->pre = cur->pre;
-    }
     if (cur->parent == NULL)
       ;
     else if (cur->parent->right == cur)
-      cur->parent->right = NULL;
-    else if (cur->parent->left == cur)
-      cur->parent->left = NULL;
-    if (cur->parent)
     {
-      cur->parent->level = (cur->parent->left) ? cur->parent->left->level-1 : 1;
+      cur->parent->right = NULL;
+      if (cur->parent)
+      {
+        cur->parent->level = (cur->parent->left) ? cur->parent->left->level+1 : 1;
+      }
+    }
+    else if (cur->parent->left == cur)
+    {
+      cur->parent->left = NULL;
+      if (cur->parent)
+      {
+        cur->parent->level = (cur->parent->right) ? cur->parent->right->level+1 : 1;
+      }
     }
     free(cur->obj);
-    free(cur->key);
     free(cur);
-    if (temp == NULL || pThis->size == 1)
+    if (pThis->size == 1)
     {
       pThis->size--;
       return __DS__MAP__NORMAL__;
@@ -597,7 +643,7 @@ int mapDelete(struct map_t *pThis, void *pKey)
   while (1)
   {
     if (cur->left == NULL && cur->right == NULL)
-      ;
+      cur->level = 1;
     else if (cur->right == NULL)
     {
       cur->level = cur->left->level+1;
@@ -619,12 +665,9 @@ int mapDelete(struct map_t *pThis, void *pKey)
         if (cur->right->level == 2)
         {
           if (cur == pThis->head)
-          {
             pThis->head = buggy(cur, 1);
-          }
           else
             buggy(cur, 1);
-          break;
         }
         /*left = 0 right = 2*/
       }
@@ -633,12 +676,9 @@ int mapDelete(struct map_t *pThis, void *pKey)
         if (cur->left->level == 2)
         {
           if (cur == pThis->head)
-          {
             pThis->head = buggy(cur, 2);
-          }
           else
             buggy(cur, 2);
-          break;
         }
         /*left = 2 right = NULL*/
       }
@@ -646,32 +686,25 @@ int mapDelete(struct map_t *pThis, void *pKey)
     else if (cur->right->level - cur->left->level == 2)
     {
       if (cur == pThis->head)
-      {
         pThis->head = buggy(cur, 1);
-      }
       else
         buggy(cur, 1);
       /*right > left*/
-      break;
     }
-    else if (cur->right->level - cur->left->level == -2)
+    else if (cur->left->level - cur->right->level == 2)
     {
       if (cur == pThis->head)
-      {
         pThis->head = buggy(cur, 2);
-      }
       else
         buggy(cur, 2);
       /*right < left*/
-      break;
     }
-    if (cur == pThis->head)
+    if (cur->parent == NULL)
       break;
-    cur->parent->nChild++;
     cur = cur->parent;
   }
   pThis->size--;
-	return __DS__MAP__OBJ_NOT_EXIST__;
+	return __DS__MAP__NORMAL__;
 }
 
 int mapGet(struct map_t *pThis, void *pKey, void *pRetObj)
