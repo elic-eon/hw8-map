@@ -16,20 +16,20 @@ struct map_t;
 /* Key type must support customized comparison */
 
 /* If it is OOM( out of memory) in the memory allocation,
- * Please return __DS__MAP__OUT_OF_MEM__ for each function which supports to 
- * return __DS__MAP__NORMAL__ when normal execution. 
+ * Please return __DS__MAP__OUT_OF_MEM__ for each function which supports to
+ * return __DS__MAP__NORMAL__ when normal execution.
  */
 
 struct map_t *mapAlloc();
 /* Allocate memory for map. Return NULL if not enough memory */
 
-int mapInit(struct map_t *pThis, size_t keySize, size_t objSize, size_t cap,  
+int mapInit(struct map_t *pThis, size_t keySize, size_t objSize, size_t cap,
            int (*cmp)(const void*, const void*));
-/* Ini tialize pThis: 
+/* Ini tialize pThis:
  * set the size of key as keySize,
  * set the size of value as objSize
  * and the capacity as cap.
- * the comparison function as cmp: 
+ * the comparison function as cmp:
  *     cmp(keyA, keyB) returns -1 if keyA < keyB
  *     cmp(keyA, keyB) returns 0 if keyA = keyB
  *     cmp(keyA, keyB) returns 1 if keyA > keyB
@@ -41,7 +41,7 @@ int mapInit(struct map_t *pThis, size_t keySize, size_t objSize, size_t cap,
  */
 
 int mapFree(struct map_t *pThis);
-/* Release the memory.  
+/* Release the memory.
  * Deep release: You should release the memory allocated by any operation.
  * Return __DS__MAP__NORMAL__ for normal execution.
  */
@@ -72,10 +72,10 @@ int mapInsert(struct map_t *pThis, void *pKey, void *pObj);
  *         __DS__MAP__FULL__ if size is equal to capacity
  * Note 1: mapInsert inserts the key-value pair into *pThis only when key is not in *pThis
  * Note 2: mapInsert should be implement in O(log n)
- */          
+ */
 
 int mapDelete(struct map_t *pThis, void *pKey);
-/* Delete a object in the set  
+/* Delete a object in the set
  * Input: pThis, an pointer to order msp
  *        pKey, pointer to key
  * Output: __DS__MAP__OBJ_NOT_EXIST__ if object to delete is not in the map
@@ -93,7 +93,7 @@ int mapGet(struct map_t *pThis, void *pKey, void *pRetObj);
  *         __DS__MAP__OBJ_EXIST__ if object is inside the map
  * Note 1: *RetObj should be NULL if key is not in *pThis
  * Note 2: mapGet should be implement in O(log n)
- */ 
+ */
 
 int mapSet(struct map_t *pThis, void *pKey, void *pObj);
 /* Set the value of certain key
@@ -182,7 +182,7 @@ int mapGetOrder(struct map_t *pThis, int k, void *pRetKey, void *pRetObj);
  * Output: __DS__MAP__NORMAL__ for normal execution
  *         __DS__MAP__OBJ_NOT_EXIST__ if no key found
  *  Note that mapGetOrder should be implement in O(log n)
- */ 
+ */
 
 int mapGetOrderIt(struct map_t *pThis, int k, void *pRetKey, void *pRetObj, mapit *pRetIt);
 /* Bonus 3: Find the iterator indicating the kth-smallest key and it's value in the map
